@@ -140,15 +140,13 @@ void APiggies::updatePigHP(int NewPigHp)
 
 void APiggies::TakeDamage(int DamageAmount, float StunDuaration)
 {
-
 	if (!isAlive) return;
-
+	Stun(StunDuaration);
 
 	updatePigHP(PigsHP - DamageAmount);
 
 	if (PigsHP <= 0.0f) {
-
-		// dead
+		// Dead
 		updatePigHP(0);
 		HpPigTxt->SetHiddenInGame(true);
 
@@ -156,22 +154,17 @@ void APiggies::TakeDamage(int DamageAmount, float StunDuaration)
 		isAbleToMove = false;
 		CanAttack = false;
 
-		// death Anim
+		// Death Anim
+		UE_LOG(LogTemp, Warning, TEXT("Playing death animation"));
 		GetAnimInstance()->JumpToNode(FName("Death"), FName("LocoMotion"));
-
 	}
 	else {
+		// Alive
 
-		//Alive
-
-		Stun(StunDuaration);
-
-		// play damage anim
+		// Play damage animation
+		UE_LOG(LogTemp, Warning, TEXT("Playing damage animation"));
 		GetAnimInstance()->JumpToNode(FName("Damaged"), FName("LocoMotion"));
-
 	}
-
-
 }
 
 void APiggies::Stun(float Duration)
@@ -210,31 +203,20 @@ void APiggies::Attack()
 			0.0f,
 			OnAttackOverrideEndDelegt);
 
+		GetWorldTimerManager().SetTimer(AttackCooldown, this, &APiggies::OnAttackCooldownTimeout, AttackCoolDownInSecs, false);
 	}
-
-	GetWorldTimerManager().SetTimer(AttackCooldown,
-		this, 
-		&APiggies::OnAttackCooldownTimeout,
-		1.0f
-		, false, AttackCoolDownInSecs);
-
 }
 
 void APiggies::OnAttackCooldownTimeout()
 {
 	if (isAlive) {
-
 		CanAttack = true;
 	}
-
 }
 
 void APiggies::OnAttackOverrideAnimEnd(bool Done)
 {
-
 	if (isAlive) {
-
 		isAbleToMove = true;
 	}
-
 }
