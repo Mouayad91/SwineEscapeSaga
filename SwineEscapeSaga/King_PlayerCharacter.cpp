@@ -1,6 +1,8 @@
 #include "King_PlayerCharacter.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/PlayerController.h" 
+#include "Piggies.h"
+
 
 AKing_PlayerCharacter::AKing_PlayerCharacter()
 {
@@ -11,6 +13,13 @@ AKing_PlayerCharacter::AKing_PlayerCharacter()
 
 	PlayerCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	PlayerCamera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
+
+
+
+
+	AttackCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("Attack Collision"));
+	AttackCollision->SetupAttachment(RootComponent);
+
 }
 
 void AKing_PlayerCharacter::BeginPlay()
@@ -25,6 +34,16 @@ void AKing_PlayerCharacter::BeginPlay()
 			Subsystem->AddMappingContext(IMC, 0);
 		}
 	}
+
+
+	OnAttackOverrideEndDelegt.BindUObject(this, &AKing_PlayerCharacter::OnAttackOverrideAnimationEnds);
+
+	AttackCollision->OnComponentBeginOverlap.AddDynamic(this, &AKing_PlayerCharacter::BeginOverlapAttackBox);
+
+	EnableAttackCollision(false);
+
+
+
 }
 
 void AKing_PlayerCharacter::Tick(float DeltaTime)
@@ -79,6 +98,7 @@ void AKing_PlayerCharacter::SetDirection(float MovementValueDirection)
 	}
 }
 
+
 void AKing_PlayerCharacter::JumpBegin(const FInputActionValue& Value)
 {
 	if (isAlive && isAbleToMove)
@@ -95,4 +115,79 @@ void AKing_PlayerCharacter::JumpEnds(const FInputActionValue& Value)
 void AKing_PlayerCharacter::Attack(const FInputActionValue& Value)
 {
 
+
+	if (isAlive && CanAttack) {
+
+		//isAbleToMove = false;
+		CanAttack = false;
+
+		EnableAttackCollision(true);
+		
+		GetAnimInstance()->PlayAnimationOverride(AttackAnimSeq, FName("DefaultSlot"), 1.0f, 0.0f, OnAttackOverrideEndDelegt);
+
+	}
+
+
+
+
+
+
 }
+void AKing_PlayerCharacter::OnAttackOverrideAnimationEnds(bool Done)
+{
+
+	CanAttack = true;
+	//isAbleToMove = true;
+
+	EnableAttackCollision(false);
+
+
+}
+
+void AKing_PlayerCharacter::BeginOverlapAttackBox(
+	UPrimitiveComponent* OverlappedComponent ,
+	AActor* OtherActor, 
+	UPrimitiveComponent* OtherComponent, 
+	int32 OtherBodyIndex,
+	bool bFromSweep,
+	const FHitResult& SweepResult)
+{
+
+
+	APiggies* Piggies = Cast<APiggies>(OtherActor);
+
+	if (Piggies) {
+
+		// apply damage to piggies
+		GEngine->AddOnScreenDebugMessage(-1, 20.0f, FColor::Red, Piggies->GetName());
+
+	}
+
+
+
+}
+
+void AKing_PlayerCharacter::EnableAttackCollision(bool Enabled)
+{
+
+
+	if (Enabled) {
+
+		AttackCollision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		AttackCollision->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn
+			, ECollisionResponse::ECR_Overlap);
+
+
+	}
+	else {
+
+		AttackCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		AttackCollision->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn
+			, ECollisionResponse::ECR_Ignore);
+	}
+
+
+
+}
+
+

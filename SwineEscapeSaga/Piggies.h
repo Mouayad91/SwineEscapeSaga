@@ -1,11 +1,9 @@
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "PaperZDCharacter.h"
 #include "Components/SphereComponent.h"
 #include "King_PlayerCharacter.h"
-
 #include "Piggies.generated.h"
 
 /**
@@ -25,7 +23,7 @@ public:
 	AKing_PlayerCharacter* FollowPlayer;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float StopDistance = 65.f;
+	float StopDistance = 30.f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	bool isAlive = true;
@@ -37,10 +35,16 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
-	// detectors funcs to target the player character
+	// Detectors function to target the player character
 	UFUNCTION()
 	void OnBeginOverlap(UPrimitiveComponent* OverlapComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
 	void OnEndOverlap(UPrimitiveComponent* OverlapComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex);
+
+	// func determin if enm should move to the player
+	bool SMTT();
+
+
+	void updateDirection(float MovementDirection);
 };

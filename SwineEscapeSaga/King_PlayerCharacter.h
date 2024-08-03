@@ -10,8 +10,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "Components/InputComponent.h"
 #include "InputActionValue.h"
-
-
+#include "PaperZDAnimInstance.h"
+#include "Components/BoxComponent.h"
 
 
 #include "King_PlayerCharacter.generated.h"
@@ -33,6 +33,11 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	UCameraComponent* PlayerCamera;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UBoxComponent* AttackCollision;
+
+
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UInputMappingContext* IMC;
 
@@ -42,12 +47,20 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UInputAction* IA_Attack;
 
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPaperZDAnimSequence* AttackAnimSeq;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UInputAction* IA_Jump;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool isAbleToMove = true;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool CanAttack = true;
+
+	FZDOnAnimationOverrideEndSignature OnAttackOverrideEndDelegt;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool isAlive = true;
@@ -67,4 +80,18 @@ public:
 	void Attack(const FInputActionValue& Value);
 
 	void SetDirection(float MovementValueDirection);
+
+	void OnAttackOverrideAnimationEnds(bool Done);
+
+	UFUNCTION()
+	void BeginOverlapAttackBox(UPrimitiveComponent* OverlappedComponent
+		,AActor* OtherActor,
+		UPrimitiveComponent* OtherComponent, 
+		int32 OtherBodyIndex, bool bFromSweep
+		,const FHitResult& SweepResult);
+
+
+	UFUNCTION(BlueprintCallable)
+
+	void EnableAttackCollision(bool Enabled);
 };
