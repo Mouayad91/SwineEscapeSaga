@@ -18,6 +18,9 @@ APiggies::APiggies()
 	HpPigTxt = CreateDefaultSubobject<UTextRenderComponent>(TEXT("Piggies HP"));
 	HpPigTxt->SetupAttachment(RootComponent);
 
+
+	AttackCollisionB = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxAttackCollision"));
+	AttackCollisionB->SetupAttachment(RootComponent);
 }
 
 // BeginPlay
@@ -30,6 +33,14 @@ void APiggies::BeginPlay()
 
 	updatePigHP(PigsHP);
 	OnAttackOverrideEndDelegt.BindUObject(this, &APiggies::OnAttackOverrideAnimEnd);;
+
+	AttackCollisionB->OnComponentBeginOverlap.AddDynamic(this, &APiggies::BeginOverlapAttackBox);
+
+	EnableAttackCollision(false);
+
+
+
+
 
 }
 
@@ -157,6 +168,8 @@ void APiggies::TakeDamage(int DamageAmount, float StunDuaration)
 		// Death Anim
 		UE_LOG(LogTemp, Warning, TEXT("Playing death animation"));
 		GetAnimInstance()->JumpToNode(FName("Death"), FName("LocoMotion"));
+		EnableAttackCollision(false);
+	
 	}
 	else {
 		// Alive
@@ -219,4 +232,43 @@ void APiggies::OnAttackOverrideAnimEnd(bool Done)
 	if (isAlive) {
 		isAbleToMove = true;
 	}
+}
+
+void APiggies::BeginOverlapAttackBox(UPrimitiveComponent* OverlappedComponent,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComponent,
+	int32 OtherBodyIndex,
+	bool bFromSweep,
+	const FHitResult& SweepResult)
+{
+
+	AKing_PlayerCharacter* PlayerCharacter = Cast<AKing_PlayerCharacter>(OtherActor);
+
+	if (PlayerCharacter) {
+
+		PlayerCharacter->TakeDamage(AttackDamage, AttackStunDuration);
+	}
+
+
+
+}
+
+void APiggies::EnableAttackCollision(bool Enabled)
+{
+
+
+	if (Enabled) {
+		AttackCollisionB->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		AttackCollisionB->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+	}
+	else {
+		AttackCollisionB->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		AttackCollisionB->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+	}
+
+
+
+
+
+
 }

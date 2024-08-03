@@ -7,6 +7,7 @@
 #include "Components//TextRenderComponent.h"
 #include "PaperZDAnimInstance.h"
 #include "Engine/TimerHandle.h"
+#include "Components/BoxComponent.h"
 
 
 
@@ -37,9 +38,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float AttackCoolDownInSecs = 2.f;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UBoxComponent* AttackCollisionB;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int PigsHP = 100;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int AttackDamage = 5;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float AttackStunDuration = 0.2f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	bool isAlive = true;
@@ -78,9 +88,12 @@ public:
 
 
 	void updateDirection(float MovementDirection);
-
+	
+	
+	UFUNCTION(BlueprintCallable)
 	void updatePigHP(int NewPigHp);
 
+	UFUNCTION(BlueprintCallable)
 	void TakeDamage(int DamageAmount, float StunDuaration);
 
 
@@ -90,5 +103,18 @@ public:
 	void Attack();
 	void OnAttackCooldownTimeout();
 	void OnAttackOverrideAnimEnd(bool Done);
+
+	
+	UFUNCTION()
+	void BeginOverlapAttackBox(UPrimitiveComponent* OverlappedComponent
+		,AActor* OtherActor,
+		UPrimitiveComponent* OtherComponent, 
+		int32 OtherBodyIndex, bool bFromSweep
+		,const FHitResult& SweepResult);
+
+
+	UFUNCTION(BlueprintCallable)
+
+	void EnableAttackCollision(bool Enabled);
 
 };

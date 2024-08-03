@@ -69,6 +69,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int AttackDamage = 20;
 
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int PlayerHP = 100;
+
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float AttackStunDuaration = 0.2f;
 
@@ -98,4 +103,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 
 	void EnableAttackCollision(bool Enabled);
+
+	UFUNCTION(BlueprintCallable)
+	void TakeDamage(int DamageAmount, float StunDuration);
+	
+	UFUNCTION(BlueprintCallable)
+	void UpdatePlayerHP(int NewPlayerHP);
 };

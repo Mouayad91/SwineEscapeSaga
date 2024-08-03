@@ -145,7 +145,6 @@ void AKing_PlayerCharacter::BeginOverlapAttackBox(UPrimitiveComponent* Overlappe
 
 
 
-
 void AKing_PlayerCharacter::EnableAttackCollision(bool Enabled)
 {
 	if (Enabled) {
@@ -156,4 +155,46 @@ void AKing_PlayerCharacter::EnableAttackCollision(bool Enabled)
 		AttackCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		AttackCollision->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 	}
+}
+
+void AKing_PlayerCharacter::TakeDamage(int DamageAmount, float StunDuration)
+{
+
+
+	if (!isAlive) return;
+
+	UpdatePlayerHP(PlayerHP - DamageAmount);
+
+	if (PlayerHP <= 0.0f) {
+
+		// player dead
+		UpdatePlayerHP(0);
+		isAlive = false;
+		isAbleToMove = false;
+		CanAttack = false;
+
+		GetAnimInstance()->JumpToNode(FName("Death"), FName("LocoMotion"));
+		EnableAttackCollision(false);
+
+
+	}
+	else
+	{
+
+		//player alive
+		GetAnimInstance()->JumpToNode(FName("Damaged"), FName("LocoMotion"));
+
+
+	}
+
+}
+
+void AKing_PlayerCharacter::UpdatePlayerHP(int NewPlayerHP)
+{
+
+
+	PlayerHP = NewPlayerHP;
+
+
+
 }
