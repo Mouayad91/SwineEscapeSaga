@@ -66,7 +66,11 @@ public:
 	bool isAlive = true;
 
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int AttackDamage = 20;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float AttackStunDuaration = 0.2f;
 
 
 	AKing_PlayerCharacter();

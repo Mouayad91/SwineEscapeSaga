@@ -14,6 +14,10 @@ APiggies::APiggies()
 	SphereDetector->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	SphereDetector->SetCollisionResponseToAllChannels(ECR_Ignore);
 	SphereDetector->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+
+	HpPigTxt = CreateDefaultSubobject<UTextRenderComponent>(TEXT("Piggies HP"));
+	HpPigTxt->SetupAttachment(RootComponent);
+
 }
 
 // BeginPlay
@@ -23,6 +27,10 @@ void APiggies::BeginPlay()
 
 	SphereDetector->OnComponentBeginOverlap.AddDynamic(this, &APiggies::OnBeginOverlap);
 	SphereDetector->OnComponentEndOverlap.AddDynamic(this, &APiggies::OnEndOverlap);
+
+	updatePigHP(PigsHP);
+	OnAttackOverrideEndDelegt.BindUObject(this, &APiggies::OnAttackOverrideAnimEnd);;
+
 }
 
 // Tick
@@ -30,7 +38,7 @@ void APiggies::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (isAlive && FollowPlayer)
+	if (isAlive && FollowPlayer && !IsStunned)
 	{
 		float MovementDirection = (FollowPlayer->GetActorLocation().X - GetActorLocation().X) > 0.0f ? 1.0f : -1.0f;
 		updateDirection(MovementDirection);
@@ -45,6 +53,11 @@ void APiggies::Tick(float DeltaTime)
 		else
 		{
 			// Attack player character
+			if (FollowPlayer->isAlive) {
+
+				Attack();
+			}
+
 		}
 	}
 }
@@ -89,6 +102,8 @@ void APiggies::updateDirection(float MovementDirection)
 
 }
 
+
+
 // OnBeginOverlap
 void APiggies::OnBeginOverlap(UPrimitiveComponent* OverlapComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
@@ -109,4 +124,117 @@ void APiggies::OnEndOverlap(UPrimitiveComponent* OverlapComponent, AActor* Other
 	{
 		FollowPlayer = nullptr;
 	}
+}
+
+
+void APiggies::updatePigHP(int NewPigHp)
+{
+
+	PigsHP = NewPigHp;
+
+	FString Str = FString::Printf(TEXT("HP: %d"), PigsHP);
+	HpPigTxt->SetText(FText::FromString(Str));
+
+
+}
+
+void APiggies::TakeDamage(int DamageAmount, float StunDuaration)
+{
+
+	if (!isAlive) return;
+
+
+	updatePigHP(PigsHP - DamageAmount);
+
+	if (PigsHP <= 0.0f) {
+
+		// dead
+		updatePigHP(0);
+		HpPigTxt->SetHiddenInGame(true);
+
+		isAlive = false;
+		isAbleToMove = false;
+		CanAttack = false;
+
+		// death Anim
+		GetAnimInstance()->JumpToNode(FName("Death"), FName("LocoMotion"));
+
+	}
+	else {
+
+		//Alive
+
+		Stun(StunDuaration);
+
+		// play damage anim
+		GetAnimInstance()->JumpToNode(FName("Damaged"), FName("LocoMotion"));
+
+	}
+
+
+}
+
+void APiggies::Stun(float Duration)
+{
+
+	IsStunned = true;
+
+	bool isTimerActive = GetWorldTimerManager().IsTimerActive(StunTime);
+	if (isTimerActive) {
+		GetWorldTimerManager().ClearTimer(StunTime);
+
+	}
+	
+	GetWorldTimerManager().SetTimer(StunTime, this, &APiggies::OnStunTimeOut, 1.0f, false, Duration);
+
+	GetAnimInstance()->StopAllAnimationOverrides();
+}
+
+void APiggies::OnStunTimeOut()
+{
+
+
+	IsStunned = false;
+
+}
+
+void APiggies::Attack()
+{
+	if (isAlive && CanAttack && !IsStunned) {
+		CanAttack = false;
+		isAbleToMove = false;
+
+		GetAnimInstance()->PlayAnimationOverride(AttackAnimSeq,
+			FName("DefaultSlot"),
+			1.0f,
+			0.0f,
+			OnAttackOverrideEndDelegt);
+
+	}
+
+	GetWorldTimerManager().SetTimer(AttackCooldown,
+		this, 
+		&APiggies::OnAttackCooldownTimeout,
+		1.0f
+		, false, AttackCoolDownInSecs);
+
+}
+
+void APiggies::OnAttackCooldownTimeout()
+{
+	if (isAlive) {
+
+		CanAttack = true;
+	}
+
+}
+
+void APiggies::OnAttackOverrideAnimEnd(bool Done)
+{
+
+	if (isAlive) {
+
+		isAbleToMove = true;
+	}
+
 }

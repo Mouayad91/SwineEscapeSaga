@@ -121,7 +121,7 @@ void AKing_PlayerCharacter::Attack(const FInputActionValue& Value)
 		//isAbleToMove = false;
 		CanAttack = false;
 
-		EnableAttackCollision(true);
+		//EnableAttackCollision(true);
 		
 		GetAnimInstance()->PlayAnimationOverride(AttackAnimSeq, FName("DefaultSlot"), 1.0f, 0.0f, OnAttackOverrideEndDelegt);
 
@@ -139,7 +139,7 @@ void AKing_PlayerCharacter::OnAttackOverrideAnimationEnds(bool Done)
 	CanAttack = true;
 	//isAbleToMove = true;
 
-	EnableAttackCollision(false);
+	//EnableAttackCollision(false);
 
 
 }
@@ -158,8 +158,10 @@ void AKing_PlayerCharacter::BeginOverlapAttackBox(
 
 	if (Piggies) {
 
-		// apply damage to piggies
-		GEngine->AddOnScreenDebugMessage(-1, 20.0f, FColor::Red, Piggies->GetName());
+		Piggies->TakeDamage(AttackDamage, AttackStunDuaration);
+
+
+		//GEngine->AddOnScreenDebugMessage(-1, 20.0f, FColor::Red, Piggies->GetName());
 
 	}
 
