@@ -1,4 +1,5 @@
 
+
 #pragma once
 
 
@@ -12,6 +13,8 @@
 #include "InputActionValue.h"
 #include "PaperZDAnimInstance.h"
 #include "Components/BoxComponent.h"
+#include "PlayerHUD.h"
+#include "Engine/TimerHandle.h"
 
 
 #include "King_PlayerCharacter.generated.h"
@@ -36,7 +39,16 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	UBoxComponent* AttackCollision;
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UPlayerHUD> KingHudClass;
 
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UPlayerHUD* KingHudWidget;
+
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool isStunned = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UInputMappingContext* IMC;
@@ -61,6 +73,8 @@ public:
 	bool CanAttack = true;
 
 	FZDOnAnimationOverrideEndSignature OnAttackOverrideEndDelegt;
+	FTimerHandle StunTimer;
+
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool isAlive = true;
@@ -94,10 +108,10 @@ public:
 
 	UFUNCTION()
 	void BeginOverlapAttackBox(UPrimitiveComponent* OverlappedComponent
-		,AActor* OtherActor,
-		UPrimitiveComponent* OtherComponent, 
+		, AActor* OtherActor,
+		UPrimitiveComponent* OtherComponent,
 		int32 OtherBodyIndex, bool bFromSweep
-		,const FHitResult& SweepResult);
+		, const FHitResult& SweepResult);
 
 
 	UFUNCTION(BlueprintCallable)
@@ -106,7 +120,12 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void TakeDamage(int DamageAmount, float StunDuration);
-	
+
 	UFUNCTION(BlueprintCallable)
 	void UpdatePlayerHP(int NewPlayerHP);
+
+	UFUNCTION(BlueprintCallable)
+	void Stun(float DurationInSecs);
+
+	void StunTimeOut();
 };

@@ -40,10 +40,7 @@ void APiggies::BeginPlay()
 
 
 
-
-
 }
-
 // Tick
 void APiggies::Tick(float DeltaTime)
 {
@@ -169,7 +166,7 @@ void APiggies::TakeDamage(int DamageAmount, float StunDuaration)
 		UE_LOG(LogTemp, Warning, TEXT("Playing death animation"));
 		GetAnimInstance()->JumpToNode(FName("Death"), FName("LocoMotion"));
 		EnableAttackCollision(false);
-	
+
 	}
 	else {
 		// Alive
@@ -190,7 +187,7 @@ void APiggies::Stun(float Duration)
 		GetWorldTimerManager().ClearTimer(StunTime);
 
 	}
-	
+
 	GetWorldTimerManager().SetTimer(StunTime, this, &APiggies::OnStunTimeOut, 1.0f, false, Duration);
 
 	GetAnimInstance()->StopAllAnimationOverrides();

@@ -2,7 +2,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/PlayerController.h" 
 #include "Piggies.h"
-
+#include "Kismet/GameplayStatics.h"
 
 AKing_PlayerCharacter::AKing_PlayerCharacter()
 {
@@ -42,6 +42,19 @@ void AKing_PlayerCharacter::BeginPlay()
 
 	EnableAttackCollision(false);
 
+	if (KingHudClass)
+	{
+		KingHudWidget = CreateWidget<UPlayerHUD>(UGameplayStatics::GetPlayerController(GetWorld(), 0), KingHudClass);
+		if (KingHudWidget)
+		{
+			KingHudWidget->AddToPlayerScreen();
+			KingHudWidget->SetPlayerHP(PlayerHP);
+			KingHudWidget->SetDiamonds(50);
+			KingHudWidget->SetLevel(1);
+		}
+	}
+
+
 
 
 }
@@ -68,7 +81,7 @@ void AKing_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 void AKing_PlayerCharacter::MoveRight(const FInputActionValue& Value)
 {
 	float MovementValue = Value.Get<float>();
-	if (isAlive && isAbleToMove)
+	if (isAlive && isAbleToMove && !isStunned)
 	{
 		FVector Direction = FVector(1.0f, 0.f, 0.f);
 		AddMovementInput(Direction, MovementValue);
@@ -78,7 +91,7 @@ void AKing_PlayerCharacter::MoveRight(const FInputActionValue& Value)
 
 void AKing_PlayerCharacter::SetDirection(float MovementValueDirection)
 {
-	if (!Controller) return; 
+	if (!Controller) return;
 
 	FRotator CurrentRotation = Controller->GetControlRotation();
 
@@ -89,7 +102,7 @@ void AKing_PlayerCharacter::SetDirection(float MovementValueDirection)
 			Controller->SetControlRotation(FRotator(CurrentRotation.Pitch, 180.f, CurrentRotation.Roll));
 		}
 	}
-	else if (MovementValueDirection > 0.f) 
+	else if (MovementValueDirection > 0.f)
 	{
 		if (CurrentRotation.Yaw != 0.f)
 		{
@@ -101,7 +114,7 @@ void AKing_PlayerCharacter::SetDirection(float MovementValueDirection)
 
 void AKing_PlayerCharacter::JumpBegin(const FInputActionValue& Value)
 {
-	if (isAlive && isAbleToMove)
+	if (isAlive && isAbleToMove && !isStunned)
 	{
 		Jump();
 	}
@@ -113,7 +126,7 @@ void AKing_PlayerCharacter::JumpEnds(const FInputActionValue& Value)
 }
 void AKing_PlayerCharacter::Attack(const FInputActionValue& Value)
 {
-	if (isAlive && CanAttack) {
+	if (isAlive && CanAttack && !isStunned) {
 		CanAttack = false;
 		// Enable attack collision
 		EnableAttackCollision(true);
@@ -162,6 +175,7 @@ void AKing_PlayerCharacter::TakeDamage(int DamageAmount, float StunDuration)
 
 
 	if (!isAlive) return;
+	Stun(StunDuration);
 
 	UpdatePlayerHP(PlayerHP - DamageAmount);
 
@@ -194,6 +208,33 @@ void AKing_PlayerCharacter::UpdatePlayerHP(int NewPlayerHP)
 
 
 	PlayerHP = NewPlayerHP;
+	KingHudWidget->SetPlayerHP(PlayerHP);
+
+
+}
+
+void AKing_PlayerCharacter::Stun(float DurationInSecs)
+{
+
+	isStunned = true;
+
+	bool isTimerActive = GetWorldTimerManager().IsTimerActive(StunTimer);
+	if (isTimerActive) {
+		GetWorldTimerManager().ClearTimer(StunTimer);
+
+	}
+
+	GetWorldTimerManager().SetTimer(StunTimer, this, &AKing_PlayerCharacter::StunTimeOut, 1.0f, false, DurationInSecs);
+
+	GetAnimInstance()->StopAllAnimationOverrides();
+
+}
+
+void AKing_PlayerCharacter::StunTimeOut()
+{
+
+
+	isStunned = false;
 
 
 
