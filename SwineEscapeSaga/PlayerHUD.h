@@ -20,7 +20,7 @@ public:
     UTextBlock* PlayerHP;
 
     UPROPERTY(EditAnywhere, meta = (BindWidget))
-    UTextBlock* Diamonds;
+    UTextBlock* Gems;
 
     UPROPERTY(EditAnywhere, meta = (BindWidget))
     UTextBlock* Levels;

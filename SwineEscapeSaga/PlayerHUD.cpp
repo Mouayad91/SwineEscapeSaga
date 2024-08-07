@@ -11,10 +11,10 @@ void UPlayerHUD::SetPlayerHP(int newHP)
 
 void UPlayerHUD::SetDiamonds(int Amount)
 {
-    if (IsValid(Diamonds))
+    if (IsValid(Gems))
     {
-        FString Str = FString::Printf(TEXT("Diamonds: %d"), Amount);
-        Diamonds->SetText(FText::FromString(Str));
+        FString Str = FString::Printf(TEXT("Gems: %d"), Amount);
+        Gems->SetText(FText::FromString(Str));
     }
 }
 

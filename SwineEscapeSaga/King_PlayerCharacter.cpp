@@ -3,6 +3,7 @@
 #include "GameFramework/PlayerController.h" 
 #include "Piggies.h"
 #include "Kismet/GameplayStatics.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 AKing_PlayerCharacter::AKing_PlayerCharacter()
 {
@@ -42,6 +43,18 @@ void AKing_PlayerCharacter::BeginPlay()
 
 	EnableAttackCollision(false);
 
+	GameInstance =	Cast<USwineEscapeGameInstance>(GetGameInstance());
+
+	if (GameInstance) {
+
+		PlayerHP = GameInstance->PlayerHp;
+		if (GameInstance->isDoubleJumpUnlocked) {
+
+			UnlockDoubleJump();
+		}
+
+	}
+
 	if (KingHudClass)
 	{
 		KingHudWidget = CreateWidget<UPlayerHUD>(UGameplayStatics::GetPlayerController(GetWorld(), 0), KingHudClass);
@@ -49,8 +62,8 @@ void AKing_PlayerCharacter::BeginPlay()
 		{
 			KingHudWidget->AddToPlayerScreen();
 			KingHudWidget->SetPlayerHP(PlayerHP);
-			KingHudWidget->SetDiamonds(50);
-			KingHudWidget->SetLevel(1);
+			KingHudWidget->SetDiamonds(GameInstance->CollectedGemsCount);
+			KingHudWidget->SetLevel(GameInstance->currentLevel);
 		}
 	}
 
@@ -136,7 +149,12 @@ void AKing_PlayerCharacter::Attack(const FInputActionValue& Value)
 
 void AKing_PlayerCharacter::OnAttackOverrideAnimationEnds(bool Done)
 {
-	CanAttack = true;
+	if (IsActive && isAlive) {
+		CanAttack = true;
+		//isAbleToMove = true;
+
+	}
+
 	// Disable attack collision
 	EnableAttackCollision(false);
 }
@@ -175,6 +193,8 @@ void AKing_PlayerCharacter::TakeDamage(int DamageAmount, float StunDuration)
 
 
 	if (!isAlive) return;
+	if (!IsActive) return;
+	
 	Stun(StunDuration);
 
 	UpdatePlayerHP(PlayerHP - DamageAmount);
@@ -190,7 +210,10 @@ void AKing_PlayerCharacter::TakeDamage(int DamageAmount, float StunDuration)
 		GetAnimInstance()->JumpToNode(FName("Death"), FName("LocoMotion"));
 		EnableAttackCollision(false);
 
-
+		float  Delay = 2.0f;
+		GetWorldTimerManager().SetTimer(GameOverTimer, this,
+			&AKing_PlayerCharacter::OnGameOverTimeout,
+			1.0f, false, Delay);
 	}
 	else
 	{
@@ -208,6 +231,7 @@ void AKing_PlayerCharacter::UpdatePlayerHP(int NewPlayerHP)
 
 
 	PlayerHP = NewPlayerHP;
+	GameInstance->SetPlayerHp(PlayerHP);
 	KingHudWidget->SetPlayerHP(PlayerHP);
 
 
@@ -237,5 +261,98 @@ void AKing_PlayerCharacter::StunTimeOut()
 	isStunned = false;
 
 
+
+}
+
+void AKing_PlayerCharacter::CollectItem(CollectableType ItemType)
+{
+	switch (ItemType)
+	{
+	case CollectableType::HealPotion:
+	{
+		if (HealPotionSFX)
+		{
+			UGameplayStatics::PlaySound2D(GetWorld(), HealPotionSFX);
+		}
+
+		int healValue = 20;
+		UpdatePlayerHP(PlayerHP + healValue);
+
+	} break;
+
+	case CollectableType::Gems:
+	{
+		if (GemsSFX)
+		{
+			UGameplayStatics::PlaySound2D(GetWorld(), GemsSFX);
+		}
+
+		GameInstance->AddGems(1);
+		KingHudWidget->SetDiamonds(GameInstance->CollectedGemsCount);
+
+
+	} break;
+
+	case CollectableType::DoubleJumpPotion:
+	{
+		if (DoubleJumpPotionSFX)
+		{
+			UGameplayStatics::PlaySound2D(GetWorld(), DoubleJumpPotionSFX);
+		}
+
+		if (!GameInstance->isDoubleJumpUnlocked) {
+
+			GameInstance->isDoubleJumpUnlocked = true;
+			UnlockDoubleJump();
+		}
+
+
+	} break;
+
+	case CollectableType::Key:
+	{
+		if (KeySFX)
+		{
+			UGameplayStatics::PlaySound2D(GetWorld(), KeySFX);
+		}
+
+
+
+
+	} break;
+	default:
+	{
+	} break;
+	}
+}
+
+void AKing_PlayerCharacter::UnlockDoubleJump()
+{
+
+	JumpMaxCount = 2;
+
+}
+
+void AKing_PlayerCharacter::OnGameOverTimeout()
+{
+
+
+	GameInstance->Restart();
+
+
+
+}
+
+void AKing_PlayerCharacter::StopPlayer()
+{
+
+	if (IsActive)
+	{
+		IsActive = false;
+		CanAttack = false;
+		isAbleToMove = false;
+
+		GetCharacterMovement()->StopMovementImmediately();
+	}
 
 }
