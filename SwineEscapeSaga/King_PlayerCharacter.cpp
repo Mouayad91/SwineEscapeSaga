@@ -88,6 +88,9 @@ void AKing_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 		EnhancedInputComponent->BindAction(IA_Jump, ETriggerEvent::Completed, this, &AKing_PlayerCharacter::JumpEnds);
 		EnhancedInputComponent->BindAction(IA_Jump, ETriggerEvent::Canceled, this, &AKing_PlayerCharacter::JumpEnds);
 		EnhancedInputComponent->BindAction(IA_Attack, ETriggerEvent::Triggered, this, &AKing_PlayerCharacter::Attack);
+	
+		EnhancedInputComponent->BindAction(IA_Escape, ETriggerEvent::Triggered, this, &AKing_PlayerCharacter::ExitGame);
+
 	}
 }
 
@@ -354,5 +357,14 @@ void AKing_PlayerCharacter::StopPlayer()
 
 		GetCharacterMovement()->StopMovementImmediately();
 	}
+
+}
+
+void AKing_PlayerCharacter::ExitGame()
+{
+
+	UKismetSystemLibrary::QuitGame(GetWorld(), UGameplayStatics::GetPlayerController(GetWorld(), 0)
+		,EQuitPreference::Quit, false);
+	
 
 }

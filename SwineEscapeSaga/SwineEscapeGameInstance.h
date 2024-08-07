@@ -31,11 +31,16 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	int currentLevel = 1;
 
-
+	UFUNCTION(BlueprintCallable)
 	void SetPlayerHp(int newHp);
+	
+	UFUNCTION(BlueprintCallable)
 	void AddGems(int amount);
-
+	
+	UFUNCTION(BlueprintCallable)
 	void ChangeGameLevel(int LevelIndex);
+	
+	UFUNCTION(BlueprintCallable)
 	void Restart();
 
 

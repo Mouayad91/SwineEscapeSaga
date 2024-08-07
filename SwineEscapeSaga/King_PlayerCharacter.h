@@ -56,7 +56,10 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     UInputAction* IA_Attack;
-
+   
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    UInputAction* IA_Escape;
+   
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     UPaperZDAnimSequence* AttackAnimSeq;
 
@@ -71,6 +74,8 @@ public:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     bool IsActive = true;
+
+   
 
     FZDOnAnimationOverrideEndSignature OnAttackOverrideEndDelegt;
     FTimerHandle StunTimer;
@@ -121,6 +126,7 @@ public:
         int32 OtherBodyIndex, bool bFromSweep
         , const FHitResult& SweepResult);
 
+   
     UFUNCTION(BlueprintCallable)
     void EnableAttackCollision(bool Enabled);
 
@@ -132,13 +138,21 @@ public:
 
     UFUNCTION(BlueprintCallable)
     void Stun(float DurationInSecs);
-
+    
+    UFUNCTION(BlueprintCallable)
     void StunTimeOut();
 
     UFUNCTION(BlueprintCallable)
     void CollectItem(CollectableType ItemType);
+   
+    UFUNCTION(BlueprintCallable)
     void UnlockDoubleJump();
-
+    UFUNCTION(BlueprintCallable)
     void OnGameOverTimeout();
+   
+    UFUNCTION(BlueprintCallable)
     void StopPlayer();
+   
+    UFUNCTION(BlueprintCallable)
+    void ExitGame();
 };
